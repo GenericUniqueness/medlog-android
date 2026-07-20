@@ -1,3 +1,5 @@
+[![Android CI](https://github.com/GenericUniqueness/medlog-android/actions/workflows/android-ci.yml/badge.svg)](https://github.com/GenericUniqueness/medlog-android/actions/workflows/android-ci.yml)
+
 # MedLog — Personal Health Tracker
 
 A private, offline-first Android application for tracking medications, conditions, appointments, and more. All data is stored locally on your device — no network calls, no cloud, no accounts.
@@ -14,6 +16,13 @@ A private, offline-first Android application for tracking medications, condition
 - **Global Search** — Find anything across all your data
 - **PDF Export** — Generate reports to share with your doctor
 - **Reminders** — Medication and appointment notifications
+
+## Download
+
+| Build | Link |
+|-------|------|
+| 🧪 Nightly (latest debug) | [Download from Nightly Release](https://github.com/GenericUniqueness/medlog-android/releases/tag/nightly) |
+| 📦 Stable releases | [Releases page](https://github.com/GenericUniqueness/medlog-android/releases) |
 
 ## Tech Stack
 
@@ -89,6 +98,12 @@ app/src/main/java/com/medlog/app/
 - `RECEIVE_BOOT_COMPLETED` — Re-schedule reminders after reboot
 - `CAMERA` — Photo capture for attachments
 - `READ_MEDIA_IMAGES` / `READ_EXTERNAL_STORAGE` — File attachments
+
+## CI/CD
+
+- **Every push/PR**: Builds debug APK + runs lint → artifacts available for 30 days
+- **Version tags (`v*`)**: Builds debug + release APKs → creates GitHub Release with APKs attached
+- **Nightly**: Latest `main` build always available at the `nightly` pre-release tag
 
 ## Version
 

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Exclude the Room database from auto-backup to avoid version conflicts -->
+    <exclude domain="database" path="medlog_database" />
+    <exclude domain="database" path="medlog_database-wal" />
+    <exclude domain="database" path="medlog_database-shm" />
+    <!-- Exclude internal file attachments (managed by app) -->
+    <exclude domain="file" path="attachments" />
+</full-backup-content>

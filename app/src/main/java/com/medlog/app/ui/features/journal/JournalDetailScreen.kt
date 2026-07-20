@@ -14,6 +14,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.medlog.app.ui.components.MoodIndicator
 import com.medlog.app.ui.navigation.Route
 import java.time.format.DateTimeFormatter
 

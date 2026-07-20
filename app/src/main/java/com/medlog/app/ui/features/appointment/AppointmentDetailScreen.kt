@@ -40,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -75,16 +76,17 @@ fun AppointmentDetailScreen(navController: NavHostController) {
     val appointment = uiState.selectedAppointment
 
     // Delete confirmation dialog
-    if (uiState.showDeleteDialog && uiState.appointmentToDelete != null) {
+    val appointmentToDelete = uiState.appointmentToDelete
+    if (uiState.showDeleteDialog && appointmentToDelete != null) {
         AlertDialog(
             onDismissRequest = { viewModel.dismissDeleteDialog() },
             title = { Text("Delete Appointment") },
             text = {
-                Text("Are you sure you want to delete \"${uiState.appointmentToDelete.title}\"? This action cannot be undone.")
+                Text("Are you sure you want to delete \"${appointmentToDelete.title}\"? This action cannot be undone.")
             },
             confirmButton = {
                 TextButton(
-                    onClick = { viewModel.deleteAppointment(uiState.appointmentToDelete) },
+                    onClick = { viewModel.deleteAppointment(appointmentToDelete) },
                     colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
                         contentColor = MaterialTheme.colorScheme.error
                     )

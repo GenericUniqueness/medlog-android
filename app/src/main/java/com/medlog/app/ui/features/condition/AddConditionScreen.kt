@@ -146,9 +146,7 @@ fun AddConditionScreen(navController: NavHostController) {
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Diagnosed Date (optional)") },
-                    modifier = Modifier
-                        .weight(1f)
-                        .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                    modifier = Modifier.weight(1f),
                     interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
                 )
                 Spacer(modifier = Modifier.padding(horizontal = 4.dp))
@@ -267,6 +265,7 @@ fun AddConditionScreen(navController: NavHostController) {
     }
 }
 
+@Composable
 private fun Icon(imageVector: androidx.compose.ui.graphics.vector.ImageVector, contentDescription: String?) {
     androidx.compose.material3.Icon(imageVector = imageVector, contentDescription = contentDescription)
 }

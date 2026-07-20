@@ -381,6 +381,7 @@ private fun AlertDialog(
     )
 }
 
+@Composable
 private fun Icon(
     imageVector: androidx.compose.ui.graphics.vector.ImageVector,
     contentDescription: String?

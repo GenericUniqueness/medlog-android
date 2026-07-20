@@ -72,29 +72,44 @@ class DashboardViewModel(
         }
     }
 
+    private data class LoadResult(
+        val meds: List<MedicationEntity>,
+        val conditions: List<ConditionEntity>,
+        val upcoming: List<AppointmentEntity>,
+        val todayCount: Int,
+        val medLogs: List<MedicationLogEntity>,
+        val journals: List<JournalEntryEntity>,
+        val allAppointments: List<AppointmentEntity>
+    )
+
     private fun loadDashboardData(profileId: Long) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
             try {
                 combine(
-                    medicationRepository.getActiveMedicationsByProfile(profileId),
-                    conditionRepository.getActiveConditionsByProfile(profileId),
-                    appointmentRepository.getUpcomingAppointments(profileId),
-                    medicationRepository.getTodayLogCount(profileId),
-                    medicationRepository.getLogsForProfile(profileId),
+                    combine(
+                        medicationRepository.getActiveMedicationsByProfile(profileId),
+                        conditionRepository.getActiveConditionsByProfile(profileId),
+                        appointmentRepository.getUpcomingAppointments(profileId),
+                        medicationRepository.getTodayLogCount(profileId),
+                        medicationRepository.getLogsForProfile(profileId)
+                    ) { meds, conditions, upcoming, todayCount, medLogs ->
+                        LoadResult(meds, conditions, upcoming, todayCount, medLogs, emptyList(), emptyList())
+                    },
                     journalRepository.getJournalByProfile(profileId),
                     appointmentRepository.getAppointmentsByProfile(profileId)
-                ) { meds, conditions, upcoming, todayCount, medLogs, journals, allAppointments ->
-                    val recentActivity = buildRecentActivity(medLogs, conditions, journals, upcoming)
+                ) { partial, journals, allAppointments ->
+                    val result = partial.copy(journals = journals, allAppointments = allAppointments)
+                    val recentActivity = buildRecentActivity(result.medLogs, result.conditions, result.journals, result.upcoming)
                     DashboardUiState(
                         activeProfile = _uiState.value.activeProfile,
                         allProfiles = _uiState.value.allProfiles,
-                        activeMedicationCount = meds.size,
-                        activeConditionCount = conditions.size,
-                        upcomingAppointments = upcoming.take(3),
-                        todayLogCount = todayCount,
+                        activeMedicationCount = result.meds.size,
+                        activeConditionCount = result.conditions.size,
+                        upcomingAppointments = result.upcoming.take(3),
+                        todayLogCount = result.todayCount,
                         recentActivity = recentActivity,
-                        activeMedications = meds,
+                        activeMedications = result.meds,
                         isLoading = false,
                         error = null
                     )

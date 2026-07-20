@@ -39,6 +39,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -84,16 +85,17 @@ fun ConditionDetailScreen(navController: NavHostController) {
     var noteContentError by remember { mutableStateOf<String?>(null) }
 
     // Delete condition dialog
-    if (uiState.showDeleteDialog && uiState.conditionToDelete != null) {
+    val conditionToDelete = uiState.conditionToDelete
+    if (uiState.showDeleteDialog && conditionToDelete != null) {
         AlertDialog(
             onDismissRequest = { viewModel.dismissDeleteDialog() },
             title = { Text("Delete Condition") },
             text = {
-                Text("Are you sure you want to delete \"${uiState.conditionToDelete.name}\"? This will also delete all associated notes. This action cannot be undone.")
+                Text("Are you sure you want to delete \"${conditionToDelete.name}\"? This will also delete all associated notes. This action cannot be undone.")
             },
             confirmButton = {
                 TextButton(
-                    onClick = { viewModel.deleteCondition(uiState.conditionToDelete) },
+                    onClick = { viewModel.deleteCondition(conditionToDelete) },
                     colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
                         contentColor = MaterialTheme.colorScheme.error
                     )

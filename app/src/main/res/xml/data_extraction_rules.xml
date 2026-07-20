@@ -5,13 +5,11 @@
         <include domain="database" path="." />
         <exclude domain="database" path="medlog_database-wal" />
         <exclude domain="database" path="medlog_database-shm" />
-        <exclude domain="file" path="attachments" />
     </cloud-backup>
     <device-transfer>
         <include domain="sharedpref" path="." />
         <include domain="database" path="." />
         <exclude domain="database" path="medlog_database-wal" />
         <exclude domain="database" path="medlog_database-shm" />
-        <exclude domain="file" path="attachments" />
     </device-transfer>
 </data-extraction-rules>

@@ -1,5 +1,7 @@
 package com.medlog.app.ui.navigation
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -65,6 +67,8 @@ sealed class Route(val route: String) {
     data object Settings : Route("settings")
 }
 
+private const val ANIM_DURATION = 300
+
 @Composable
 fun MedLogNavHost(
     navController: NavHostController,
@@ -74,7 +78,31 @@ fun MedLogNavHost(
     NavHost(
         navController = navController,
         startDestination = startRoute,
-        modifier = modifier
+        modifier = modifier,
+        enterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { it / 3 },
+                animationSpec = tween(ANIM_DURATION)
+            ) + fadeIn(animationSpec = tween(ANIM_DURATION))
+        },
+        exitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { -it / 4 },
+                animationSpec = tween(ANIM_DURATION)
+            ) + fadeOut(animationSpec = tween(ANIM_DURATION / 2))
+        },
+        popEnterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { -it / 3 },
+                animationSpec = tween(ANIM_DURATION)
+            ) + fadeIn(animationSpec = tween(ANIM_DURATION))
+        },
+        popExitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { it / 3 },
+                animationSpec = tween(ANIM_DURATION)
+            ) + fadeOut(animationSpec = tween(ANIM_DURATION / 2))
+        }
     ) {
         composable(Route.Onboarding.route) {
             val app = LocalContext.current.applicationContext as MedLogApp

@@ -2,9 +2,11 @@ package com.medlog.app.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 
 private val LightColorScheme = lightColorScheme(
     primary = md_theme_primary,
@@ -15,6 +17,10 @@ private val LightColorScheme = lightColorScheme(
     onSecondary = md_theme_onSecondary,
     secondaryContainer = md_theme_secondaryContainer,
     onSecondaryContainer = md_theme_onSecondaryContainer,
+    tertiary = md_theme_tertiary,
+    onTertiary = md_theme_onTertiary,
+    tertiaryContainer = md_theme_tertiaryContainer,
+    onTertiaryContainer = md_theme_onTertiaryContainer,
     error = md_theme_error,
     onError = md_theme_onError,
     errorContainer = md_theme_errorContainer,
@@ -23,6 +29,14 @@ private val LightColorScheme = lightColorScheme(
     onBackground = md_theme_onBackground,
     surface = md_theme_surface,
     onSurface = md_theme_onSurface,
+    surfaceVariant = md_theme_surfaceVariant,
+    onSurfaceVariant = md_theme_onSurfaceVariant,
+    outline = md_theme_outline,
+    outlineVariant = md_theme_outlineVariant,
+    surfaceContainerLow = md_theme_surfaceContainerLow,
+    surfaceContainer = md_theme_surfaceContainer,
+    surfaceContainerHigh = md_theme_surfaceContainerHigh,
+    surfaceContainerHighest = md_theme_surfaceContainerHighest,
 )
 
 private val DarkColorScheme = darkColorScheme(
@@ -34,6 +48,10 @@ private val DarkColorScheme = darkColorScheme(
     onSecondary = md_theme_dark_onSecondary,
     secondaryContainer = md_theme_dark_secondaryContainer,
     onSecondaryContainer = md_theme_dark_onSecondaryContainer,
+    tertiary = md_theme_dark_tertiary,
+    onTertiary = md_theme_dark_onTertiary,
+    tertiaryContainer = md_theme_dark_tertiaryContainer,
+    onTertiaryContainer = md_theme_dark_onTertiaryContainer,
     error = md_theme_dark_error,
     onError = md_theme_dark_onError,
     errorContainer = md_theme_dark_errorContainer,
@@ -42,6 +60,22 @@ private val DarkColorScheme = darkColorScheme(
     onBackground = md_theme_dark_onBackground,
     surface = md_theme_dark_surface,
     onSurface = md_theme_dark_onSurface,
+    surfaceVariant = md_theme_dark_surfaceVariant,
+    onSurfaceVariant = md_theme_dark_onSurfaceVariant,
+    outline = md_theme_dark_outline,
+    outlineVariant = md_theme_dark_outlineVariant,
+    surfaceContainerLow = md_theme_dark_surfaceContainerLow,
+    surfaceContainer = md_theme_dark_surfaceContainer,
+    surfaceContainerHigh = md_theme_dark_surfaceContainerHigh,
+    surfaceContainerHighest = md_theme_dark_surfaceContainerHighest,
+)
+
+private val MedLogShapes = Shapes(
+    extraSmall = RoundedCornerShape(8.dp),
+    small = RoundedCornerShape(12.dp),
+    medium = RoundedCornerShape(16.dp),
+    large = RoundedCornerShape(24.dp),
+    extraLarge = RoundedCornerShape(32.dp)
 )
 
 @Composable
@@ -62,7 +96,8 @@ fun MedLogTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography(),
+        typography = MedLogTypography,
+        shapes = MedLogShapes,
         content = content
     )
 }

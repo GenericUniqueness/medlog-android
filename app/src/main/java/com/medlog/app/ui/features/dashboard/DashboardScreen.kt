@@ -1,11 +1,14 @@
 package com.medlog.app.ui.features.dashboard
 
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -14,6 +17,9 @@ import androidx.compose.material3.MenuAnchorType
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -24,6 +30,10 @@ import androidx.navigation.NavHostController
 import com.medlog.app.data.local.entity.MedicationEntity
 import com.medlog.app.ui.features.profile.ProfileSwitcher
 import com.medlog.app.ui.navigation.Route
+import com.medlog.app.ui.theme.GradientEnd
+import com.medlog.app.ui.theme.GradientEndDark
+import com.medlog.app.ui.theme.GradientStart
+import com.medlog.app.ui.theme.GradientStartDark
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
@@ -78,26 +88,36 @@ fun DashboardScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = Icons.Filled.Person,
-                            contentDescription = null,
-                            modifier = Modifier.size(72.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Surface(
+                            modifier = Modifier.size(80.dp),
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.surfaceVariant
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Filled.Person,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(40.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(20.dp))
                         Text(
                             text = "No active profile",
                             style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "Create a profile to get started.",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(24.dp))
                         FilledTonalButton(onClick = { navController.navigate(Route.Settings.route) }) {
+                            Icon(Icons.Filled.PersonAdd, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
                             Text("Create Profile")
                         }
                     }
@@ -127,7 +147,6 @@ fun DashboardScreen(
         }
     }
 
-    // Log Medication Dialog
     if (showLogMedicationDialog) {
         QuickLogMedicationDialog(
             medications = uiState.activeMedications,
@@ -139,7 +158,6 @@ fun DashboardScreen(
         )
     }
 
-    // Error snackbar
     uiState.error?.let { error ->
         Snackbar(
             modifier = Modifier.padding(16.dp),
@@ -171,71 +189,79 @@ private fun DashboardContent(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp)
     ) {
-        Spacer(modifier = Modifier.height(8.dp))
+        // Gradient header with greeting
+        GradientHeader(profileName = uiState.activeProfile?.name ?: "User")
 
-        // Greeting
-        GreetingSection(profileName = uiState.activeProfile?.name ?: "User")
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp)
+        ) {
+            Spacer(modifier = Modifier.height(20.dp))
 
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // First time / Welcome state
-        if (uiState.isFirstTime) {
-            WelcomeState(
-                onAddMedication = onMedicationsClick,
-                onAddCondition = onConditionsClick,
-                onAddAppointment = onAppointmentsClick
-            )
-        } else {
-            // Summary cards
-            SummaryCardsRow(
-                activeMedicationCount = uiState.activeMedicationCount,
-                activeConditionCount = uiState.activeConditionCount,
-                upcomingAppointmentCount = uiState.upcomingAppointmentCount,
-                todayLogCount = uiState.todayLogCount,
-                onMedicationsClick = onMedicationsClick,
-                onConditionsClick = onConditionsClick,
-                onAppointmentsClick = onAppointmentsClick
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Quick Actions
-            QuickActionsSection(
-                onLogMedication = onLogMedication,
-                onNewJournal = onNewJournal,
-                onNewNote = onNewNote
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Upcoming Appointments
-            if (uiState.upcomingAppointments.isNotEmpty()) {
-                UpcomingAppointmentsSection(
-                    appointments = uiState.upcomingAppointments,
-                    onAppointmentClick = onAppointmentClick,
-                    onViewAllClick = onAppointmentsClick
+            if (uiState.isFirstTime) {
+                WelcomeState(
+                    onAddMedication = onMedicationsClick,
+                    onAddCondition = onConditionsClick,
+                    onAddAppointment = onAppointmentsClick
                 )
-                Spacer(modifier = Modifier.height(24.dp))
+            } else {
+                // Summary cards
+                SummaryCardsRow(
+                    activeMedicationCount = uiState.activeMedicationCount,
+                    activeConditionCount = uiState.activeConditionCount,
+                    upcomingAppointmentCount = uiState.upcomingAppointmentCount,
+                    todayLogCount = uiState.todayLogCount,
+                    onMedicationsClick = onMedicationsClick,
+                    onConditionsClick = onConditionsClick,
+                    onAppointmentsClick = onAppointmentsClick
+                )
+
+                Spacer(modifier = Modifier.height(28.dp))
+
+                // Quick Actions
+                QuickActionsSection(
+                    onLogMedication = onLogMedication,
+                    onNewJournal = onNewJournal,
+                    onNewNote = onNewNote
+                )
+
+                Spacer(modifier = Modifier.height(28.dp))
+
+                // Upcoming Appointments
+                if (uiState.upcomingAppointments.isNotEmpty()) {
+                    SectionHeader(title = "Upcoming", actionText = "View all", onAction = onAppointmentsClick)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    uiState.upcomingAppointments.forEach { appointment ->
+                        AppointmentItem(
+                            appointment = appointment,
+                            onClick = { onAppointmentClick(appointment.id) }
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                    Spacer(modifier = Modifier.height(28.dp))
+                }
+
+                // Recent Activity
+                if (uiState.recentActivity.isNotEmpty()) {
+                    SectionHeader(title = "Recent Activity")
+                    Spacer(modifier = Modifier.height(12.dp))
+                    uiState.recentActivity.forEach { item ->
+                        ActivityItem(
+                            item = item,
+                            onClick = { onActivityClick(item) }
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
+                }
             }
 
-            // Recent Activity
-            if (uiState.recentActivity.isNotEmpty()) {
-                RecentActivitySection(
-                    activities = uiState.recentActivity,
-                    onActivityClick = onActivityClick
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-            }
+            Spacer(modifier = Modifier.height(32.dp))
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
 @Composable
-private fun GreetingSection(profileName: String) {
+private fun GradientHeader(profileName: String) {
     val greeting = remember {
         val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
         when {
@@ -245,12 +271,59 @@ private fun GreetingSection(profileName: String) {
         }
     }
 
-    Text(
-        text = "$greeting, $profileName",
-        style = MaterialTheme.typography.headlineMedium.copy(
-            fontWeight = FontWeight.Bold
+    val dateText = remember {
+        LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("EEEE, MMMM d"))
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(GradientStart, GradientEnd)
+                )
+            )
+            .padding(horizontal = 20.dp, vertical = 24.dp)
+    ) {
+        Column {
+            Text(
+                text = "$greeting,",
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White.copy(alpha = 0.85f)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = profileName,
+                style = MaterialTheme.typography.headlineLarge,
+                color = Color.White
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = dateText,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White.copy(alpha = 0.7f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun SectionHeader(title: String, actionText: String? = null, onAction: (() -> Unit)? = null) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge
         )
-    )
+        if (actionText != null && onAction != null) {
+            TextButton(onClick = onAction) {
+                Text(actionText)
+            }
+        }
+    }
 }
 
 @Composable
@@ -264,18 +337,18 @@ private fun SummaryCardsRow(
     onAppointmentsClick: () -> Unit
 ) {
     val cards = listOf(
-        SummaryCardData("Medications", activeMedicationCount, Icons.Filled.Medication, onMedicationsClick),
-        SummaryCardData("Conditions", activeConditionCount, Icons.Filled.Favorite, onConditionsClick),
-        SummaryCardData("Appointments", upcomingAppointmentCount, Icons.Filled.CalendarToday, onAppointmentsClick),
-        SummaryCardData("Today's Logs", todayLogCount, Icons.Filled.CheckCircle, null)
+        SummaryCardData("Medications", activeMedicationCount, Icons.Filled.Medication, MaterialTheme.colorScheme.primary, onMedicationsClick),
+        SummaryCardData("Conditions", activeConditionCount, Icons.Filled.Favorite, MaterialTheme.colorScheme.error, onConditionsClick),
+        SummaryCardData("Upcoming", upcomingAppointmentCount, Icons.Filled.CalendarMonth, MaterialTheme.colorScheme.tertiary, onAppointmentsClick),
+        SummaryCardData("Today", todayLogCount, Icons.Filled.CheckCircle, MaterialTheme.colorScheme.secondary, null)
     )
 
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        contentPadding = PaddingValues(end = 4.dp)
+        contentPadding = PaddingValues(horizontal = 16.dp)
     ) {
         items(cards) { card ->
-            SummaryCard(card = card)
+            AnimatedSummaryCard(card = card)
         }
     }
 }
@@ -284,33 +357,52 @@ private data class SummaryCardData(
     val label: String,
     val count: Int,
     val icon: ImageVector,
+    val accentColor: Color,
     val onClick: (() -> Unit)?
 )
 
 @Composable
-private fun SummaryCard(card: SummaryCardData) {
+private fun AnimatedSummaryCard(card: SummaryCardData) {
+    val animatedCount by animateIntAsState(
+        targetValue = card.count,
+        animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
+        label = "count"
+    )
+
     Card(
         modifier = Modifier
-            .width(150.dp)
+            .width(140.dp)
             .then(
                 if (card.onClick != null) Modifier.clickable(onClick = card.onClick)
                 else Modifier
-            )
+            ),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        )
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Icon(
-                imageVector = card.icon,
-                contentDescription = card.label,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(28.dp)
-            )
+            Surface(
+                modifier = Modifier.size(36.dp),
+                shape = RoundedCornerShape(10.dp),
+                color = card.accentColor.copy(alpha = 0.12f)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = card.icon,
+                        contentDescription = card.label,
+                        tint = card.accentColor,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
             Text(
-                text = card.count.toString(),
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Bold
+                text = animatedCount.toString(),
+                style = MaterialTheme.typography.displaySmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 36.sp
                 )
             )
             Text(
@@ -328,83 +420,68 @@ private fun QuickActionsSection(
     onNewJournal: () -> Unit,
     onNewNote: () -> Unit
 ) {
-    Text(
-        text = "Quick Actions",
-        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
-    )
+    SectionHeader(title = "Quick Actions")
     Spacer(modifier = Modifier.height(12.dp))
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        FilledTonalButton(
+        QuickActionButton(
+            icon = Icons.Filled.Medication,
+            label = "Log Med",
+            color = MaterialTheme.colorScheme.primary,
             onClick = onLogMedication,
-            modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp)
-        ) {
-            Icon(
-                Icons.Filled.Add,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp)
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text("Log Med", style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
-        FilledTonalButton(
+            modifier = Modifier.weight(1f)
+        )
+        QuickActionButton(
+            icon = Icons.Filled.Book,
+            label = "Journal",
+            color = MaterialTheme.colorScheme.tertiary,
             onClick = onNewJournal,
-            modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp)
-        ) {
-            Icon(
-                Icons.Filled.Book,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp)
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text("Journal", style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
-        FilledTonalButton(
+            modifier = Modifier.weight(1f)
+        )
+        QuickActionButton(
+            icon = Icons.Filled.NoteAdd,
+            label = "Note",
+            color = MaterialTheme.colorScheme.secondary,
             onClick = onNewNote,
-            modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp)
-        ) {
-            Icon(
-                Icons.Filled.NoteAdd,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp)
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text("Note", style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
+            modifier = Modifier.weight(1f)
+        )
     }
 }
 
 @Composable
-private fun UpcomingAppointmentsSection(
-    appointments: List<com.medlog.app.data.local.entity.AppointmentEntity>,
-    onAppointmentClick: (Long) -> Unit,
-    onViewAllClick: () -> Unit
+private fun QuickActionButton(
+    icon: ImageVector,
+    label: String,
+    color: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+    Surface(
+        modifier = modifier
+            .clip(MaterialTheme.shapes.small)
+            .clickable(onClick = onClick),
+        color = color.copy(alpha = 0.08f),
+        shape = MaterialTheme.shapes.small
     ) {
-        Text(
-            text = "Upcoming",
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
-        )
-        TextButton(onClick = onViewAllClick) {
-            Text("View all")
+        Column(
+            modifier = Modifier.padding(vertical = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = color,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = color
+            )
         }
-    }
-    Spacer(modifier = Modifier.height(8.dp))
-    appointments.forEach { appointment ->
-        AppointmentItem(
-            appointment = appointment,
-            onClick = { onAppointmentClick(appointment.id) }
-        )
-        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 
@@ -416,21 +493,33 @@ private fun AppointmentItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clip(MaterialTheme.shapes.small)
+            .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Filled.CalendarToday,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(12.dp))
+            Surface(
+                modifier = Modifier.size(40.dp),
+                shape = RoundedCornerShape(10.dp),
+                color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.12f)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Filled.CalendarToday,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.tertiary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = appointment.title,
@@ -451,39 +540,14 @@ private fun AppointmentItem(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                if (!appointment.location.isNullOrBlank()) {
-                    Text(
-                        text = appointment.location,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
             }
             Icon(
                 Icons.Filled.ChevronRight,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp)
             )
         }
-    }
-}
-
-@Composable
-private fun RecentActivitySection(
-    activities: List<RecentActivityItem>,
-    onActivityClick: (RecentActivityItem) -> Unit
-) {
-    Text(
-        text = "Recent Activity",
-        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
-    )
-    Spacer(modifier = Modifier.height(8.dp))
-    activities.forEach { item ->
-        ActivityItem(
-            item = item,
-            onClick = { onActivityClick(item) }
-        )
-        Spacer(modifier = Modifier.height(6.dp))
     }
 }
 
@@ -510,14 +574,15 @@ private fun ActivityItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(MaterialTheme.shapes.small)
             .clickable(onClick = onClick)
-            .padding(vertical = 6.dp),
+            .padding(vertical = 8.dp, horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Surface(
             modifier = Modifier.size(36.dp),
             shape = CircleShape,
-            color = tint.copy(alpha = 0.12f)
+            color = tint.copy(alpha = 0.1f)
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
@@ -554,19 +619,27 @@ private fun WelcomeState(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
         )
     ) {
         Column(
             modifier = Modifier.padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                imageVector = Icons.Filled.LocalHospital,
-                contentDescription = null,
-                modifier = Modifier.size(56.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
+            Surface(
+                modifier = Modifier.size(64.dp),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Filled.LocalHospital,
+                        contentDescription = null,
+                        modifier = Modifier.size(32.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "Welcome to MedLog!",
@@ -577,7 +650,8 @@ private fun WelcomeState(
             Text(
                 text = "Start by adding your medications and conditions.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
             Spacer(modifier = Modifier.height(20.dp))
             Row(
@@ -586,19 +660,19 @@ private fun WelcomeState(
                 OutlinedButton(onClick = onAddMedication) {
                     Icon(Icons.Filled.Medication, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Add Medication")
+                    Text("Medication")
                 }
                 OutlinedButton(onClick = onAddCondition) {
                     Icon(Icons.Filled.Favorite, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Add Condition")
+                    Text("Condition")
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedButton(onClick = onAddAppointment) {
                 Icon(Icons.Filled.CalendarToday, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("Add Appointment")
+                Text("Appointment")
             }
         }
     }
@@ -626,7 +700,6 @@ private fun QuickLogMedicationDialog(
                         style = MaterialTheme.typography.bodyMedium
                     )
                 } else {
-                    // Medication selector
                     var expanded by remember { mutableStateOf(false) }
                     val selectedMed = medications.find { it.id == selectedMedicationId }
 

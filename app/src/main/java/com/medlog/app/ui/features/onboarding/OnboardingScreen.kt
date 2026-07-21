@@ -1,11 +1,12 @@
 package com.medlog.app.ui.features.onboarding
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -13,12 +14,18 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.medlog.app.data.repository.ProfileRepository
 import com.medlog.app.data.repository.SettingsRepository
+import com.medlog.app.ui.theme.GradientEnd
+import com.medlog.app.ui.theme.GradientStart
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -45,144 +52,217 @@ fun OnboardingScreen(
 
     val bloodTypes = listOf("A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-")
 
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
+    // Animated visibility for step content
+    var showContent by remember { mutableStateOf(false) }
+    LaunchedEffect(currentStep) {
+        showContent = false
+        kotlinx.coroutines.delay(50)
+        showContent = true
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Gradient header
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Brush.linearGradient(
+                            colors = listOf(GradientStart, GradientEnd)
+                        )
+                    )
+                    .padding(horizontal = 24.dp, vertical = 40.dp)
+            ) {
+                Column {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    // App icon
+                    Surface(
+                        modifier = Modifier.size(72.dp),
+                        shape = RoundedCornerShape(20.dp),
+                        color = Color.White.copy(alpha = 0.2f)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Filled.LocalHospital,
+                                contentDescription = "MedLog",
+                                modifier = Modifier.size(40.dp),
+                                tint = Color.White
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Step content with fade animation
             AnimatedContent(
                 targetState = currentStep,
                 transitionSpec = {
                     if (targetState.index > initialState.index) {
-                        slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
+                        slideInHorizontally { it / 3 } + fadeIn() togetherWith slideOutHorizontally { -it / 3 } + fadeOut()
                     } else {
-                        slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
+                        slideInHorizontally { -it / 3 } + fadeIn() togetherWith slideOutHorizontally { it / 3 } + fadeOut()
                     }
                 },
                 modifier = Modifier.weight(1f),
                 label = "onboarding_step"
             ) { step ->
-                when (step) {
-                    OnboardingStep.WELCOME -> WelcomeStep()
-                    OnboardingStep.CREATE_PROFILE -> CreateProfileStep(
-                        name = profileName,
-                        onNameChange = {
-                            profileName = it
-                            profileNameError = if (it.isBlank()) "Name is required" else null
-                        },
-                        nameError = profileNameError,
-                        bloodType = bloodType,
-                        onBloodTypeChange = { bloodType = it },
-                        allergies = allergies,
-                        onAllergiesChange = { allergies = it },
-                        bloodTypes = bloodTypes
-                    )
-                    OnboardingStep.FEATURE_OVERVIEW -> FeatureOverviewStep()
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                        .padding(top = 32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    when (step) {
+                        OnboardingStep.WELCOME -> WelcomeStep()
+                        OnboardingStep.CREATE_PROFILE -> CreateProfileStep(
+                            name = profileName,
+                            onNameChange = {
+                                profileName = it
+                                profileNameError = if (it.isBlank()) "Name is required" else null
+                            },
+                            nameError = profileNameError,
+                            bloodType = bloodType,
+                            onBloodTypeChange = { bloodType = it },
+                            allergies = allergies,
+                            onAllergiesChange = { allergies = it },
+                            bloodTypes = bloodTypes
+                        )
+                        OnboardingStep.FEATURE_OVERVIEW -> FeatureOverviewStep()
+                    }
                 }
             }
 
             // Bottom navigation
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shadowElevation = 8.dp,
+                color = MaterialTheme.colorScheme.surface
             ) {
-                if (currentStep != OnboardingStep.WELCOME) {
-                    OutlinedButton(
-                        onClick = {
-                            val prevIndex = currentStep.index - 1
-                            currentStep = OnboardingStep.entries[prevIndex]
-                        }
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 16.dp)
+                ) {
+                    // Step indicator
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Back")
+                        OnboardingStep.entries.forEach { step ->
+                            val isSelected = step == currentStep
+                            val width by animateDpAsState(
+                                targetValue = if (isSelected) 24.dp else 8.dp,
+                                animationSpec = tween(300),
+                                label = "dot_width"
+                            )
+                            Surface(
+                                modifier = Modifier
+                                    .height(8.dp)
+                                    .width(width),
+                                shape = RoundedCornerShape(4.dp),
+                                color = if (isSelected) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.outlineVariant
+                            ) {}
+                            if (step != OnboardingStep.entries.last()) {
+                                Spacer(modifier = Modifier.width(6.dp))
+                            }
+                        }
                     }
-                } else {
-                    Spacer(modifier = Modifier.width(1.dp))
-                }
 
-                Button(
-                    onClick = {
-                        when (currentStep) {
-                            OnboardingStep.WELCOME -> {
-                                currentStep = OnboardingStep.CREATE_PROFILE
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Navigation buttons
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        if (currentStep != OnboardingStep.WELCOME) {
+                            OutlinedButton(
+                                onClick = {
+                                    val prevIndex = currentStep.index - 1
+                                    currentStep = OnboardingStep.entries[prevIndex]
+                                },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text("Back")
                             }
-                            OnboardingStep.CREATE_PROFILE -> {
-                                if (profileName.isBlank()) {
-                                    profileNameError = "Name is required"
-                                    return@Button
-                                }
-                                currentStep = OnboardingStep.FEATURE_OVERVIEW
-                            }
-                            OnboardingStep.FEATURE_OVERVIEW -> {
-                                if (!isCreating) {
-                                    isCreating = true
-                                    scope.launch {
-                                        try {
-                                            val profileId = profileRepository.createProfile(
-                                                name = profileName.trim(),
-                                                dateOfBirth = null,
-                                                bloodType = bloodType.ifBlank { null },
-                                                allergies = allergies.ifBlank { null },
-                                                notes = null
-                                            )
-                                            profileRepository.setActiveProfile(profileId)
-                                            settingsRepository.setSetting("onboarding_complete", "true")
-                                            onComplete()
-                                        } catch (e: Exception) {
-                                            isCreating = false
+                        }
+
+                        Button(
+                            onClick = {
+                                when (currentStep) {
+                                    OnboardingStep.WELCOME -> {
+                                        currentStep = OnboardingStep.CREATE_PROFILE
+                                    }
+                                    OnboardingStep.CREATE_PROFILE -> {
+                                        if (profileName.isBlank()) {
+                                            profileNameError = "Name is required"
+                                            return@Button
+                                        }
+                                        currentStep = OnboardingStep.FEATURE_OVERVIEW
+                                    }
+                                    OnboardingStep.FEATURE_OVERVIEW -> {
+                                        if (!isCreating) {
+                                            isCreating = true
+                                            scope.launch {
+                                                try {
+                                                    val profileId = profileRepository.createProfile(
+                                                        name = profileName.trim(),
+                                                        dateOfBirth = null,
+                                                        bloodType = bloodType.ifBlank { null },
+                                                        allergies = allergies.ifBlank { null },
+                                                        notes = null
+                                                    )
+                                                    profileRepository.setActiveProfile(profileId)
+                                                    settingsRepository.setSetting("onboarding_complete", "true")
+                                                    onComplete()
+                                                } catch (e: Exception) {
+                                                    isCreating = false
+                                                }
+                                            }
                                         }
                                     }
                                 }
+                            },
+                            modifier = Modifier.weight(if (currentStep == OnboardingStep.WELCOME) 1f else 1f),
+                            enabled = when (currentStep) {
+                                OnboardingStep.WELCOME -> true
+                                OnboardingStep.CREATE_PROFILE -> profileName.isNotBlank()
+                                OnboardingStep.FEATURE_OVERVIEW -> !isCreating
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            )
+                        ) {
+                            if (isCreating && currentStep == OnboardingStep.FEATURE_OVERVIEW) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(18.dp),
+                                    strokeWidth = 2.dp,
+                                    color = MaterialTheme.colorScheme.onPrimary
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Creating\u2026")
+                            } else {
+                                Text(
+                                    when (currentStep) {
+                                        OnboardingStep.WELCOME -> "Get Started"
+                                        OnboardingStep.CREATE_PROFILE -> "Continue"
+                                        OnboardingStep.FEATURE_OVERVIEW -> "Start Using MedLog"
+                                    }
+                                )
                             }
                         }
-                    },
-                    enabled = when (currentStep) {
-                        OnboardingStep.WELCOME -> true
-                        OnboardingStep.CREATE_PROFILE -> profileName.isNotBlank()
-                        OnboardingStep.FEATURE_OVERVIEW -> !isCreating
                     }
-                ) {
-                    if (isCreating && currentStep == OnboardingStep.FEATURE_OVERVIEW) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Creating…")
-                    } else {
-                        Text(
-                            when (currentStep) {
-                                OnboardingStep.WELCOME -> "Get Started"
-                                OnboardingStep.CREATE_PROFILE -> "Create & Continue"
-                                OnboardingStep.FEATURE_OVERVIEW -> "Start Using MedLog"
-                            }
-                        )
-                    }
-                }
-            }
-
-            // Step indicator
-            Spacer(modifier = Modifier.height(24.dp))
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OnboardingStep.entries.forEach { step ->
-                    Surface(
-                        modifier = Modifier.size(if (step == currentStep) 10.dp else 8.dp),
-                        shape = MaterialTheme.shapes.extraSmall,
-                        color = if (step == currentStep) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                    ) {}
                 }
             }
         }
@@ -195,48 +275,25 @@ private fun WelcomeStep() {
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(48.dp))
-
-        // App icon
-        Surface(
-            modifier = Modifier.size(100.dp),
-            shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.primaryContainer
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    imageVector = Icons.Filled.LocalHospital,
-                    contentDescription = "MedLog",
-                    modifier = Modifier.size(56.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Text(
-            text = "Welcome to MedLog",
-            style = MaterialTheme.typography.headlineLarge.copy(
-                fontWeight = FontWeight.Bold,
-                fontSize = 28.sp
-            ),
-            textAlign = TextAlign.Center
-        )
-
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Your private, offline-first health journal. Track medications, conditions, appointments, and more — all stored on your device.",
+            text = "Welcome to MedLog",
+            style = MaterialTheme.typography.headlineLarge,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = "Your private, offline-first health journal. Track medications, conditions, appointments, and more\u2014all stored on your device.",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 8.dp)
+            textAlign = TextAlign.Center
         )
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Feature highlights
         FeatureHighlight(icon = Icons.Filled.Shield, title = "Private & Secure", description = "All data stays on your device")
         Spacer(modifier = Modifier.height(12.dp))
         FeatureHighlight(icon = Icons.Filled.CloudOff, title = "Works Offline", description = "No internet connection required")
@@ -247,14 +304,14 @@ private fun WelcomeStep() {
 
 @Composable
 private fun FeatureHighlight(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     title: String,
     description: String
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         )
     ) {
         Row(
@@ -263,12 +320,20 @@ private fun FeatureHighlight(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(28.dp)
-            )
+            Surface(
+                modifier = Modifier.size(40.dp),
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+            }
             Spacer(modifier = Modifier.width(16.dp))
             Column {
                 Text(
@@ -301,28 +366,27 @@ private fun CreateProfileStep(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(32.dp))
-
+        // Section header with icon
         Surface(
-            modifier = Modifier.size(64.dp),
-            shape = MaterialTheme.shapes.large,
+            modifier = Modifier.size(56.dp),
+            shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.primaryContainer
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
                     imageVector = Icons.Filled.PersonAdd,
                     contentDescription = null,
-                    modifier = Modifier.size(32.dp),
+                    modifier = Modifier.size(28.dp),
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         Text(
             text = "Create Your Profile",
-            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+            style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center
         )
 
@@ -335,7 +399,7 @@ private fun CreateProfileStep(
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(28.dp))
 
         // Name field
         OutlinedTextField(
@@ -368,7 +432,7 @@ private fun CreateProfileStep(
                 leadingIcon = { Icon(Icons.Filled.Bloodtype, contentDescription = null) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .menuAnchor()
+                    .menuAnchor(MenuAnchorType.PrimaryNotEditable)
             )
             ExposedDropdownMenu(
                 expanded = bloodTypeExpanded,
@@ -406,6 +470,8 @@ private fun CreateProfileStep(
                 Icon(Icons.Filled.Warning, contentDescription = null)
             }
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
@@ -415,11 +481,11 @@ private fun FeatureOverviewStep() {
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Text(
             text = "What You Can Do",
-            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+            style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center
         )
 
@@ -432,54 +498,56 @@ private fun FeatureOverviewStep() {
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(28.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-        // Feature cards
         FeatureCard(
-            emoji = "💊",
             icon = Icons.Filled.Medication,
             title = "Track Medications",
-            description = "Log intake, view history, set reminders"
+            description = "Log intake, view history, set reminders",
+            color = MaterialTheme.colorScheme.primary
         )
 
         Spacer(modifier = Modifier.height(12.dp))
 
         FeatureCard(
-            emoji = "❤️",
             icon = Icons.Filled.Favorite,
             title = "Monitor Conditions",
-            description = "Track symptoms, add notes over time"
+            description = "Track symptoms, add notes over time",
+            color = MaterialTheme.colorScheme.error
         )
 
         Spacer(modifier = Modifier.height(12.dp))
 
         FeatureCard(
-            emoji = "📅",
             icon = Icons.Filled.CalendarMonth,
             title = "Manage Appointments",
-            description = "Schedule visits, set reminders"
+            description = "Schedule visits, set reminders",
+            color = MaterialTheme.colorScheme.tertiary
         )
 
         Spacer(modifier = Modifier.height(12.dp))
 
         FeatureCard(
-            emoji = "📔",
             icon = Icons.Filled.Book,
             title = "Keep a Journal",
-            description = "Record how you feel, track your mood"
+            description = "Record how you feel, track your mood",
+            color = MaterialTheme.colorScheme.secondary
         )
     }
 }
 
 @Composable
 private fun FeatureCard(
-    emoji: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     title: String,
-    description: String
+    description: String,
+    color: Color
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        )
     ) {
         Row(
             modifier = Modifier
@@ -488,16 +556,16 @@ private fun FeatureCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Surface(
-                modifier = Modifier.size(48.dp),
-                shape = MaterialTheme.shapes.medium,
-                color = MaterialTheme.colorScheme.primaryContainer
+                modifier = Modifier.size(44.dp),
+                shape = RoundedCornerShape(12.dp),
+                color = color.copy(alpha = 0.1f)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        modifier = Modifier.size(24.dp),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        modifier = Modifier.size(22.dp),
+                        tint = color
                     )
                 }
             }

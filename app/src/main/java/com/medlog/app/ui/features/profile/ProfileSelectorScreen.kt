@@ -1,14 +1,12 @@
 package com.medlog.app.ui.features.profile
 
 import android.app.DatePickerDialog
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.runtime.*
@@ -20,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.medlog.app.MedLogApp
 import com.medlog.app.data.local.entity.ProfileEntity
+import com.medlog.app.ui.components.ProfileAvatar
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -113,23 +112,31 @@ private fun EmptyProfilesState(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Icon(
-            imageVector = Icons.Filled.Person,
-            contentDescription = null,
+        Surface(
             modifier = Modifier.size(72.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-        )
-        Spacer(modifier = Modifier.height(16.dp))
+            shape = MaterialTheme.shapes.extraLarge,
+            color = MaterialTheme.colorScheme.surfaceVariant
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = Icons.Filled.Person,
+                    contentDescription = null,
+                    modifier = Modifier.size(36.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(20.dp))
         Text(
             text = "No profiles yet",
             style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "Create your first profile to get started.",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(24.dp))
         FilledTonalButton(onClick = onCreateClick) {
@@ -149,7 +156,7 @@ private fun ProfileList(
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         items(profiles, key = { it.id }) { profile ->
             ProfileCard(
@@ -172,47 +179,26 @@ private fun ProfileCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .height(80.dp),
+        onClick = onClick,
         colors = CardDefaults.cardColors(
             containerColor = if (isActive) {
-                MaterialTheme.colorScheme.primaryContainer
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
             } else {
-                MaterialTheme.colorScheme.surfaceVariant
+                MaterialTheme.colorScheme.surfaceContainerLow
             }
         )
     ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Avatar initial circle
-            Box(
-                modifier = Modifier
-                    .size(44.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Surface(
-                    modifier = Modifier.size(44.dp),
-                    shape = MaterialTheme.shapes.medium,
-                    color = if (isActive) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                    }
-                ) {}
-                Text(
-                    text = profile.name.firstOrNull()?.uppercase() ?: "?",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isActive) {
-                        MaterialTheme.colorScheme.onPrimary
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    }
-                )
-            }
+            ProfileAvatar(
+                name = profile.name,
+                size = 48.dp
+            )
 
             Spacer(modifier = Modifier.width(16.dp))
 
@@ -232,11 +218,20 @@ private fun ProfileCard(
             }
 
             if (isActive) {
-                Icon(
-                    imageVector = Icons.Filled.Check,
-                    contentDescription = "Active",
-                    tint = MaterialTheme.colorScheme.primary
-                )
+                Surface(
+                    modifier = Modifier.size(28.dp),
+                    shape = MaterialTheme.shapes.extraSmall,
+                    color = MaterialTheme.colorScheme.primary
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = "Active",
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
             }
         }
     }
@@ -281,7 +276,6 @@ private fun CreateProfileDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // Date of Birth
                 OutlinedTextField(
                     value = dateOfBirth?.format(dateFormatter) ?: "",
                     onValueChange = {},
@@ -306,7 +300,6 @@ private fun CreateProfileDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // Blood Type
                 ExposedDropdownMenuBox(
                     expanded = bloodTypeExpanded,
                     onExpandedChange = { bloodTypeExpanded = !bloodTypeExpanded }

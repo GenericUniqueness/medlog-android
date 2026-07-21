@@ -14,11 +14,14 @@ import androidx.compose.material.icons.filled.Medication
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.medlog.app.ui.navigation.MedLogNavHost
 import com.medlog.app.ui.navigation.Route
 import com.medlog.app.ui.theme.MedLogTheme
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,6 +38,17 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MedLogAppContent() {
+    val context = LocalContext.current
+    val app = context.applicationContext as MedLogApp
+    val startRoute by remember {
+        mutableStateOf(
+            runBlocking {
+                val profiles = app.container.profileRepository.getAllProfiles().first()
+                if (profiles.isNotEmpty()) Route.Dashboard.route else Route.Onboarding.route
+            }
+        )
+    }
+
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -75,6 +89,7 @@ fun MedLogAppContent() {
     ) { innerPadding ->
         MedLogNavHost(
             navController = navController,
+            startRoute = startRoute,
             modifier = Modifier.fillMaxSize().padding(innerPadding)
         )
     }

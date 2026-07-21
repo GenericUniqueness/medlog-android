@@ -68,11 +68,12 @@ sealed class Route(val route: String) {
 @Composable
 fun MedLogNavHost(
     navController: NavHostController,
+    startRoute: String = Route.Onboarding.route,
     modifier: Modifier = Modifier
 ) {
     NavHost(
         navController = navController,
-        startDestination = Route.Onboarding.route,
+        startDestination = startRoute,
         modifier = modifier
     ) {
         composable(Route.Onboarding.route) {
